@@ -16,7 +16,7 @@ st.set_page_config(
         "Report a Bug": "https://github.com/SiddhantSadangi/PolarPlotter/issues/new",
         "Get help": None,
     },
-    layout="wide",
+    layout="centered",
 )
 
 
