@@ -1,0 +1,5 @@
+kaleido
+openpyxl
+pandas
+plotly
+streamlit
