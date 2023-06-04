@@ -1,11 +1,10 @@
 import contextlib
-from io import StringIO
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 st.set_page_config(
     page_title="Polar Plotter",
@@ -22,7 +21,7 @@ st.set_page_config(
 
 # ---------- FUNCTIONS ----------
 def _reset() -> None:
-    st.session_state["title"] = st.session_state["texttemplate"] = ""
+    st.session_state["title"] = ""
     st.session_state["hovertemplate"] = "%{theta}: %{r}"
     st.session_state["opacity"] = st.session_state["marker_opacity"] = st.session_state[
         "line_smoothing"
@@ -69,18 +68,6 @@ with st.sidebar:
             help='Determines the drawing mode for this scatter trace. If the provided `mode` includes "text" then the `text` elements appear at the coordinates. '
             'Otherwise, the `text` elements appear on hover. If there are less than 20 points and the trace is not stacked then the default is "lines+markers". Otherwise, "lines".',
             key="mode",
-        )
-
-        texttemplate = st.text_input(
-            label="Text template",
-            help=r"""Template string used for rendering the information text that appear on points. Note that this will override `textinfo`.
-            Variables are inserted using %{variable}, for example "y: %{y}".
-            Numbers are formatted using d3-format's syntax %{variable:d3-format}, for example "Price: %{y:$.2f}".
-            https://github.com/d3/d3-format/tree/v1.4.5#d3-format for details on the formatting syntax.
-            Dates are formatted using d3-time-format's syntax %{variable|d3-time-format}, for example "Day: %{2019-01-01|%A}".
-            https://github.com/d3/d3-time-format/tree/v2.2.3#locale_format for details on the date formatting syntax.
-            Every attributes that can be specified per-point (the ones that are `arrayOk: True`) are available. variables `r`, `theta` and `text`.""",
-            key="texttemplate",
         )
 
         hovertemplate = st.text_input(
@@ -332,7 +319,7 @@ with st.sidebar:
             help="""Has an effect only if `shape` is set to "spline" Sets the amount of smoothing.
             "0" corresponds to no smoothing (equivalent to a "linear" shape).""",
             key="line_smoothing",
-            disabled=True if line_shape == "linear" else False,
+            disabled=line_shape == "linear",
         )
 
         line_width = st.slider(
@@ -393,28 +380,24 @@ option = st.radio(
 )
 
 if option == "Upload an excel file ⬆️":
-    uploaded_file = st.file_uploader(
+    if uploaded_file := st.file_uploader(
         label="Upload a file. File should have the format: Label|Value",
         type=["xlsx", "csv", "xls"],
-    )
-
-    if uploaded_file:
-        input_df = pd.read_excel(uploaded_file, index_col=0)
+    ):
+        input_df = pd.read_excel(uploaded_file)
+        st.write(input_df)
 
 elif option == "Add data manually ✍️":
-    label_value = st.text_area(
-        "Add comma-separated labels and values, one pair per line",
+    manual_df = pd.DataFrame(columns=["Label", "Value"]).reset_index(drop=True)
+    input_df = st.experimental_data_editor(
+        manual_df,
+        num_rows="dynamic",
     )
-    if label_value:
-        data = StringIO(label_value)
-        input_df = pd.read_csv(data, header=None, names=["Label", "Value"], index_col=0)
 
-with contextlib.suppress(NameError):
-    st.write(input_df)
-
+with contextlib.suppress(IndexError, NameError):
+    labels = list(input_df[input_df.columns[0]])
     # To close the polygon
-    labels = list(input_df.index)
-    values = list(input_df[input_df.columns[0]])
+    values = list(input_df[input_df.columns[1]])
     labels = (labels + [labels[0]])[::-1]
     values = (values + [values[0]])[::-1]
 
@@ -425,7 +408,6 @@ with contextlib.suppress(NameError):
         theta=labels,
         mode="none" if mode == [] else "+".join(mode),
         opacity=opacity,
-        texttemplate=texttemplate,
         hovertemplate=hovertemplate,
         marker_color=marker_color,
         marker_opacity=marker_opacity,
