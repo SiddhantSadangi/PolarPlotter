@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 
 st.set_page_config(
     page_title="Polar Plotter",
@@ -389,7 +389,7 @@ if option == "Upload an excel file ⬆️":
 
 elif option == "Add data manually ✍️":
     manual_df = pd.DataFrame(columns=["Label", "Value"]).reset_index(drop=True)
-    input_df = st.experimental_data_editor(
+    input_df = st.data_editor(
         manual_df,
         num_rows="dynamic",
     )
