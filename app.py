@@ -385,13 +385,14 @@ if option == "Upload an excel file ⬆️":
         type=["xlsx", "csv", "xls"],
     ):
         input_df = pd.read_excel(uploaded_file)
-        st.write(input_df)
+        st.dataframe(input_df, hide_index=True)
 
 elif option == "Add data manually ✍️":
     manual_df = pd.DataFrame(columns=["Label", "Value"]).reset_index(drop=True)
     input_df = st.data_editor(
         manual_df,
         num_rows="dynamic",
+        hide_index=True,
     )
 
 with contextlib.suppress(IndexError, NameError):
