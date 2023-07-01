@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 
 st.set_page_config(
     page_title="Polar Plotter",
@@ -113,8 +113,6 @@ else:
         num_rows="dynamic",
         hide_index=True,
     )
-
-columns = input_df.columns.values
 
 # ---------- SIDEBAR ----------
 with open("sidebar.html", "r", encoding="UTF-8") as sidebar_file:
