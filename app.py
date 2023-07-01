@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-VERSION = "0.2.1"
+VERSION = "0.3.0"
 
 st.set_page_config(
     page_title="Polar Plotter",
@@ -38,6 +38,84 @@ def _reset() -> None:
     st.session_state["fill_opacity"] = 0.5
 
 
+# ---------- HEADER ----------
+st.title("🕸️ Welcome to Polar Plotter!")
+st.subheader("Easily create rich polar/radar/spider plots.")
+
+
+# ---------- DATA ENTRY ----------
+option = st.radio(
+    label="Enter data",
+    options=(
+        "Play with example data 💡",
+        "Upload an excel file ⬆️",
+        "Add data manually ✍️",
+    ),
+    help="Uploaded files are deleted from the server when you\n* upload another file\n* clear the file uploader\n* close the browser tab",
+)
+
+if option == "Upload an excel file ⬆️":
+    if uploaded_file := st.file_uploader(
+        label="Upload a file. File should have the format: Label|Value",
+        type=["xlsx", "csv", "xls"],
+    ):
+        input_df = pd.read_excel(uploaded_file)
+        st.dataframe(input_df, hide_index=True)
+
+else:
+    if option == "Add data manually ✍️":
+        _df = pd.DataFrame(columns=["Label", "Value"]).reset_index(drop=True)
+
+    else:
+        _df = pd.DataFrame(
+            {
+                "Skill": [
+                    "Computer Vision",
+                    "Prototyping",
+                    "Classic ML",
+                    "AE/VAE",
+                    "Visualization",
+                    "Storytelling",
+                    "BI",
+                    "SQL",
+                    "Deploy",
+                    "MLOps",
+                    "Excel",
+                    "Reporting",
+                    "ViT",
+                    "Diffusers",
+                    "Python",
+                    "NLP",
+                ],
+                "Proficiency": [
+                    4.2,
+                    4.7,
+                    2.3,
+                    4,
+                    1.9,
+                    2.4,
+                    0.5,
+                    0.6,
+                    0.2,
+                    0.3,
+                    5,
+                    1.6,
+                    4,
+                    2.4,
+                    3.4,
+                    3,
+                ],
+            }
+        )
+
+    input_df = st.data_editor(
+        _df,
+        num_rows="dynamic",
+        hide_index=True,
+    )
+
+columns = input_df.columns.values
+
 # ---------- SIDEBAR ----------
 with open("sidebar.html", "r", encoding="UTF-8") as sidebar_file:
     sidebar_html = sidebar_file.read().replace("{VERSION}", VERSION)
@@ -47,6 +125,7 @@ with st.sidebar:
     with st.expander("Customization options"):
         title = st.text_input(
             label="Plot title",
+            value="Job Requirements" if option == "Play with example data 💡" else "",
             help="Sets the plot title.",
             key="title",
         )
@@ -364,37 +443,7 @@ with st.sidebar:
 
     st.components.v1.html(sidebar_html, height=750)
 
-# ---------- HEADER ----------
-st.title("🕸️ Welcome to Polar Plotter!")
-st.subheader("Easily create rich polar/radar/spider plots.")
-
-
-# ---------- DATA ENTRY ----------
-option = st.radio(
-    label="Enter data",
-    options=(
-        "Upload an excel file ⬆️",
-        "Add data manually ✍️",
-    ),
-    help="Uploaded files are deleted from the server when you\n* upload another file\n* clear the file uploader\n* close the browser tab",
-)
-
-if option == "Upload an excel file ⬆️":
-    if uploaded_file := st.file_uploader(
-        label="Upload a file. File should have the format: Label|Value",
-        type=["xlsx", "csv", "xls"],
-    ):
-        input_df = pd.read_excel(uploaded_file)
-        st.dataframe(input_df, hide_index=True)
-
-elif option == "Add data manually ✍️":
-    manual_df = pd.DataFrame(columns=["Label", "Value"]).reset_index(drop=True)
-    input_df = st.data_editor(
-        manual_df,
-        num_rows="dynamic",
-        hide_index=True,
-    )
-
+# ---------- VISUALIZATION ----------
 with contextlib.suppress(IndexError, NameError):
     labels = list(input_df[input_df.columns[0]])
     # To close the polygon
@@ -402,14 +451,12 @@ with contextlib.suppress(IndexError, NameError):
     labels = (labels + [labels[0]])[::-1]
     values = (values + [values[0]])[::-1]
 
-    # ---------- VISUALIZATION ----------
-
     data = go.Scatterpolar(
         r=values,
         theta=labels,
         mode="none" if mode == [] else "+".join(mode),
         opacity=opacity,
-        hovertemplate=hovertemplate,
+        hovertemplate=hovertemplate + "<extra></extra>",
         marker_color=marker_color,
         marker_opacity=marker_opacity,
         marker_size=marker_size,
@@ -425,7 +472,7 @@ with contextlib.suppress(IndexError, NameError):
 
     layout = go.Layout(
         title=dict(
-            text=title,
+            text="Job Requirements" if option == "Play with example data 💡" else title,
             x=0.5,
             xanchor="center",
         ),
